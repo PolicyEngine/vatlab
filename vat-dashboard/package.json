@@ -1,0 +1,34 @@
+{
+  "name": "vat-dashboard-standalone",
+  "version": "1.0.0",
+  "description": "Standalone VAT Policy Analysis Dashboard",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "export": "next export"
+  },
+  "dependencies": {
+    "framer-motion": "^10.0.0",
+    "next": "^13.0.0",
+    "plotly.js": "^2.35.3",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-plotly.js": "^2.6.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "^4.9.0"
+  },
+  "keywords": [
+    "vat",
+    "policy",
+    "dashboard",
+    "tax",
+    "analysis"
+  ],
+  "author": "PolicyEngine",
+  "license": "MIT"
+}
