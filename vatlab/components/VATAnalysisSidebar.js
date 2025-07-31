@@ -5,45 +5,16 @@ export default function VATAnalysisSidebar({ onFiltersChange, initialFilters, lo
   const [filters, setFilters] = useState(initialFilters || {
     threshold: 90000,
     graduatedEndThreshold: '',
-    laborIntensiveIndustries: ['eu_default'],
     fullRateLaborIntensive: 20,
     fullRateNonLaborIntensive: 20,
     year: 2026,
     elasticity: -0.01
   });
 
-  const laborIntensiveIndustries = [
-    { value: 'eu_default', label: 'European Union Default' },
-    { value: 'hospitality', label: 'Hospitality & Food Services' },
-    { value: 'healthcare', label: 'Healthcare & Social Care' },
-    { value: 'personal_services', label: 'Personal Care Services' },
-    { value: 'education', label: 'Education & Training' },
-    { value: 'cleaning', label: 'Cleaning & Maintenance' },
-    { value: 'security', label: 'Security Services' },
-    { value: 'retail', label: 'Retail & Customer Service' },
-    { value: 'transport', label: 'Transport & Logistics' },
-    { value: 'creative', label: 'Creative & Media Services' },
-    { value: 'consulting', label: 'Professional Consulting' }
-  ];
-
   const years = Array.from({ length: 21 }, (_, i) => 2020 + i); // 2020-2040
 
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value };
-    setFilters(newFilters);
-  };
-
-  const handleIndustryToggle = (industryValue) => {
-    const currentSelected = filters.laborIntensiveIndustries;
-    let newSelected;
-    
-    if (currentSelected.includes(industryValue)) {
-      newSelected = currentSelected.filter(item => item !== industryValue);
-    } else {
-      newSelected = [...currentSelected, industryValue];
-    }
-    
-    const newFilters = { ...filters, laborIntensiveIndustries: newSelected };
     setFilters(newFilters);
   };
 
@@ -135,39 +106,6 @@ export default function VATAnalysisSidebar({ onFiltersChange, initialFilters, lo
           />
         </div>
 
-        <div className="form-group">
-          <label>Labor-Intensive Industries:</label>
-          <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>
-            sectors eligible for reduced vat rates due to high labor content
-          </div>
-          <div style={{ 
-            border: '1px solid #ccc', 
-            borderRadius: '4px', 
-            padding: '0.5rem',
-            backgroundColor: 'white',
-            maxHeight: '200px',
-            overflowY: 'auto'
-          }}>
-            {laborIntensiveIndustries.map(industry => (
-              <div key={industry.value} style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                marginBottom: '0.5rem',
-                cursor: 'pointer'
-              }}
-              onClick={() => handleIndustryToggle(industry.value)}
-              >
-                <input
-                  type="checkbox"
-                  checked={filters.laborIntensiveIndustries.includes(industry.value)}
-                  onChange={() => handleIndustryToggle(industry.value)}
-                  style={{ marginRight: '0.5rem' }}
-                />
-                <span style={{ fontSize: '0.9rem' }}>{industry.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
 
         <div className="form-group">
           <label>Labor-Intensive Rate (%):</label>

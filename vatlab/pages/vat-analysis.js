@@ -18,7 +18,6 @@ export default function VATAnalysis() {
   const [filters, setFilters] = useState({
     threshold: 90000,
     graduatedEndThreshold: '',
-    laborIntensiveIndustries: ['eu_default'],
     fullRateLaborIntensive: 20,
     fullRateNonLaborIntensive: 20,
     year: 2026,
