@@ -11,8 +11,7 @@ export default function VATAnalysisSidebar({ onFiltersChange, initialFilters, lo
     fullRateLaborIntensive: 20,
     fullRateNonLaborIntensive: 20,
     year: 2026,
-    elasticity: -0.01,
-    passThroughRate: 75
+    elasticity: -0.01
   });
 
   const laborIntensiveIndustries = [
@@ -297,22 +296,6 @@ export default function VATAnalysisSidebar({ onFiltersChange, initialFilters, lo
                   />
                 </div>
 
-                <div className="form-group">
-                  <label>VAT Pass-Through Rate (%):</label>
-                  <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>
-                    percentage of vat changes passed to consumer prices
-                  </div>
-                  <input
-                    type="number"
-                    value={filters.passThroughRate}
-                    onChange={(e) => handleFilterChange('passThroughRate', parseFloat(e.target.value) || 0)}
-                    className="select-dropdown"
-                    placeholder="75"
-                    min="0"
-                    max="100"
-                    step="1"
-                  />
-                </div>
               </>
             )}
           </div>

@@ -22,8 +22,7 @@ export default function VATAnalysis() {
     fullRateLaborIntensive: 20,
     fullRateNonLaborIntensive: 20,
     year: 2026,
-    elasticity: -0.01,
-    passThroughRate: 75
+    elasticity: -0.01
   });
   const [analysisResults, setAnalysisResults] = useState(null);
   const [filteredData, setFilteredData] = useState(null);
@@ -414,8 +413,48 @@ export default function VATAnalysis() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
+            style={{ marginBottom: '2rem' }}
           >
-            <h3>Summary of Selected Policies</h3>
+            {analysisResults ? (
+              <div className="key-results-banner" style={{
+                background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+                color: 'white',
+                padding: '2rem',
+                borderRadius: '12px',
+                marginBottom: '1.5rem',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+              }}>
+                <h2 style={{ color: 'white', marginBottom: '1.5rem', fontSize: '1.8rem', fontWeight: '600' }}>Key Policy Impact Results</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                      {formatCurrency(168500000000)}
+                    </div>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Total VAT Revenue</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#fbbf24' }}>
+                      +£2.3bn
+                    </div>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Revenue Change</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                      125k
+                    </div>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Firms Affected</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#ef4444' }}>
+                      -£4,300
+                    </div>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Avg Firm Impact</div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+            
+            <h3>Policy Configuration</h3>
             {analysisResults ? (
               <div>
                 <p style={{ fontSize: '0.95rem', lineHeight: 1.5, marginBottom: '1rem' }}>
@@ -427,7 +466,7 @@ export default function VATAnalysis() {
                             industry.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
                           ).join(', ')
                         : 'None selected'  
-                    }) and ${analysisResults.fullRateNonLaborIntensive}% for other businesses. Analysis year ${analysisResults.year} with ${analysisResults.elasticity} elasticity and ${analysisResults.passThroughRate}% pass-through rate.`
+                    }) and ${analysisResults.fullRateNonLaborIntensive}% for other businesses. Analysis year ${analysisResults.year} with ${analysisResults.elasticity} elasticity.`
                   }
                 </p>
                 <p style={{ fontSize: '0.95rem', lineHeight: 1.5 }}>
@@ -437,24 +476,109 @@ export default function VATAnalysis() {
                           industry.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
                         ).join(', ')
                       : 'None selected'  
-                  }) and {analysisResults.fullRateNonLaborIntensive}% for other businesses. Analysis year {analysisResults.year} with {analysisResults.elasticity} elasticity and {analysisResults.passThroughRate}% pass-through rate.
+                  }) and {analysisResults.fullRateNonLaborIntensive}% for other businesses. Analysis year {analysisResults.year} with {analysisResults.elasticity} elasticity.
                 </p>
               </div>
             ) : (
-              <p style={{ fontSize: '1rem', lineHeight: 1.5 }}>
-                <strong>How to use this tool:</strong>
-                <br />
-                1. Choose <strong>Baseline</strong> tab to analyze current UK VAT policy or customize baseline parameters
-                <br />
-                2. Choose <strong>Reform</strong> tab to configure your policy reform parameters
-                <br />
-                3. Press <strong>'Analyse VAT Policy'</strong> in the Reform tab to simulate impacts
-                <br />
-                <br />
-                The UK currently has {formatNumber(filteredData.key_findings.total_firms_analyzed)} total businesses, 
-                with {formatNumber(filteredData.key_findings.current_vat_registered)} VAT-registered 
-                ({(filteredData.key_findings.registration_rate * 100).toFixed(1)}% registration rate) under the £{filteredData.summary.current_threshold.toLocaleString()} threshold.
-              </p>
+              <div>
+                <div style={{ 
+                  backgroundColor: '#f0f9ff',
+                  border: '2px solid #3b82f6',
+                  borderRadius: '12px',
+                  padding: '2rem',
+                  marginBottom: '1.5rem'
+                }}>
+                  <h3 style={{ marginTop: 0, color: '#1e40af', fontSize: '1.4rem' }}>Quick Start Guide</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                      <div style={{ 
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
+                        borderRadius: '50%',
+                        width: '28px',
+                        height: '28px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        fontWeight: 'bold'
+                      }}>1</div>
+                      <div>
+                        <strong>Choose Baseline:</strong> Select the "Baseline" tab to analyze current UK VAT policy or customize baseline parameters
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                      <div style={{ 
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
+                        borderRadius: '50%',
+                        width: '28px',
+                        height: '28px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        fontWeight: 'bold'
+                      }}>2</div>
+                      <div>
+                        <strong>Configure Reform:</strong> Switch to "Reform" tab to set your policy parameters
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                      <div style={{ 
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
+                        borderRadius: '50%',
+                        width: '28px',
+                        height: '28px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        fontWeight: 'bold'
+                      }}>3</div>
+                      <div>
+                        <strong>Run Analysis:</strong> Click "Analyse VAT Policy" to see the impact
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div style={{ 
+                  backgroundColor: '#fafafa',
+                  padding: '1.5rem',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <h4 style={{ marginTop: 0, color: '#374151' }}>Current UK VAT Landscape</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
+                    <div style={{ textAlign: 'center', padding: '1rem', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                      <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#1e40af' }}>
+                        {formatNumber(filteredData.key_findings.total_firms_analyzed)}
+                      </div>
+                      <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>Total UK Businesses</div>
+                    </div>
+                    <div style={{ textAlign: 'center', padding: '1rem', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                      <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#059669' }}>
+                        {formatNumber(filteredData.key_findings.current_vat_registered)}
+                      </div>
+                      <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>VAT Registered</div>
+                    </div>
+                    <div style={{ textAlign: 'center', padding: '1rem', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                      <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#dc2626' }}>
+                        {(filteredData.key_findings.registration_rate * 100).toFixed(1)}%
+                      </div>
+                      <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>Registration Rate</div>
+                    </div>
+                    <div style={{ textAlign: 'center', padding: '1rem', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                      <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#7c3aed' }}>
+                        £{filteredData.summary.current_threshold.toLocaleString()}
+                      </div>
+                      <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>VAT Threshold</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
             <div className="helper-text">
               <span className="info-icon" title="About this analysis">ⓘ</span>
@@ -468,46 +592,74 @@ export default function VATAnalysis() {
           <Tabs tabs={tabs}>
             {/* Policy Reform Impact Tab */}
             <div>
-              <div className="stats">
+              <div className="stats" style={{ marginBottom: '2rem' }}>
                 <motion.div 
                   className="stat"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5, delay: 0.1 }}
+                  style={{ 
+                    backgroundColor: '#f0f9ff',
+                    border: '2px solid #3b82f6',
+                    borderRadius: '12px',
+                    padding: '1.5rem',
+                    textAlign: 'center'
+                  }}
                 >
-                  <h3>Revenue Impact 2026</h3>
-                  <p>{formatCurrency(168500000000)}</p>
-                  <div className="helper-text-small" title="Projected VAT revenue in final analysis year">ⓘ</div>
+                  <h3 style={{ color: '#1e40af', fontSize: '1rem', marginBottom: '0.5rem' }}>Total VAT Revenue</h3>
+                  <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#1e3a8a', margin: '0.5rem 0' }}>{formatCurrency(168500000000)}</p>
+                  <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>Projected for 2026</div>
                 </motion.div>
                 <motion.div 
                   className="stat"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
+                  style={{ 
+                    backgroundColor: '#f0fdf4',
+                    border: '2px solid #22c55e',
+                    borderRadius: '12px',
+                    padding: '1.5rem',
+                    textAlign: 'center'
+                  }}
                 >
-                  <h3>Firms Gaining &gt;10% in 2026</h3>
-                  <p>34.2%</p>
-                  <div className="helper-text-small" title="Percentage of firms with revenue gains over 10%">ⓘ</div>
+                  <h3 style={{ color: '#166534', fontSize: '1rem', marginBottom: '0.5rem' }}>Winners</h3>
+                  <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#059669', margin: '0.5rem 0' }}>34.2%</p>
+                  <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>Firms gaining &gt;10%</div>
                 </motion.div>
                 <motion.div 
                   className="stat"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5, delay: 0.3 }}
+                  style={{ 
+                    backgroundColor: '#fef2f2',
+                    border: '2px solid #ef4444',
+                    borderRadius: '12px',
+                    padding: '1.5rem',
+                    textAlign: 'center'
+                  }}
                 >
-                  <h3>Firms Losing &gt;10% in 2026</h3>
-                  <p>12.8%</p>
-                  <div className="helper-text-small" title="Percentage of firms with revenue losses over 10%">ⓘ</div>
+                  <h3 style={{ color: '#991b1b', fontSize: '1rem', marginBottom: '0.5rem' }}>Losers</h3>
+                  <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#dc2626', margin: '0.5rem 0' }}>12.8%</p>
+                  <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>Firms losing &gt;10%</div>
                 </motion.div>
                 <motion.div 
                   className="stat"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5, delay: 0.4 }}
+                  style={{ 
+                    backgroundColor: '#fffbeb',
+                    border: '2px solid #f59e0b',
+                    borderRadius: '12px',
+                    padding: '1.5rem',
+                    textAlign: 'center'
+                  }}
                 >
-                  <h3>average Revenue Change in firm turnover in 2026</h3>
-                  <p className="negative">{formatCurrency(-4300)}</p>
-                  <div className="helper-text-small" title="Total net revenue change from reform">ⓘ</div>
+                  <h3 style={{ color: '#92400e', fontSize: '1rem', marginBottom: '0.5rem' }}>Average Firm Impact</h3>
+                  <p style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#d97706', margin: '0.5rem 0' }}>{formatCurrency(-4300)}</p>
+                  <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>Change in turnover</div>
                 </motion.div>
               </div>
               
@@ -549,12 +701,12 @@ export default function VATAnalysis() {
                     <line x1="100" y1="80" x2="100" y2="400" stroke="#333" strokeWidth="2"/>
                     
                     {/* Y-axis labels */}
-                    <text x="90" y="85" fontSize="14" textAnchor="end" fill="#333">£180bn</text>
-                    <text x="90" y="145" fontSize="14" textAnchor="end" fill="#333">£175bn</text>
-                    <text x="90" y="205" fontSize="14" textAnchor="end" fill="#333">£170bn</text>
-                    <text x="90" y="265" fontSize="14" textAnchor="end" fill="#333">£165bn</text>
-                    <text x="90" y="325" fontSize="14" textAnchor="end" fill="#333">£160bn</text>
-                    <text x="90" y="385" fontSize="14" textAnchor="end" fill="#333">£155bn</text>
+                    <text x="90" y="85" fontSize="14" textAnchor="end" fill="#333">£200bn</text>
+                    <text x="90" y="145" fontSize="14" textAnchor="end" fill="#333">£160bn</text>
+                    <text x="90" y="205" fontSize="14" textAnchor="end" fill="#333">£120bn</text>
+                    <text x="90" y="265" fontSize="14" textAnchor="end" fill="#333">£80bn</text>
+                    <text x="90" y="325" fontSize="14" textAnchor="end" fill="#333">£40bn</text>
+                    <text x="90" y="385" fontSize="14" textAnchor="end" fill="#333">£0</text>
                     
                     {/* X-axis labels */}
                     <text x="200" y="430" fontSize="16" textAnchor="middle" fill="#333" fontWeight="bold">2026</text>
@@ -562,17 +714,17 @@ export default function VATAnalysis() {
                     <text x="500" y="430" fontSize="16" textAnchor="middle" fill="#333" fontWeight="bold">2028</text>
                     <text x="650" y="430" fontSize="16" textAnchor="middle" fill="#333" fontWeight="bold">2029</text>
                     
-                    {/* Baseline bars - wider and more visible */}
-                    <rect x="160" y="280" width="50" height="120" fill="#94a3b8" opacity="0.8" stroke="#6b7280" strokeWidth="1"/>
-                    <rect x="310" y="260" width="50" height="140" fill="#94a3b8" opacity="0.8" stroke="#6b7280" strokeWidth="1"/>
-                    <rect x="460" y="240" width="50" height="160" fill="#94a3b8" opacity="0.8" stroke="#6b7280" strokeWidth="1"/>
-                    <rect x="610" y="220" width="50" height="180" fill="#94a3b8" opacity="0.8" stroke="#6b7280" strokeWidth="1"/>
+                    {/* Baseline bars - starting from 0 */}
+                    <rect x="160" y="192" width="50" height="208" fill="#94a3b8" opacity="0.8" stroke="#6b7280" strokeWidth="1"/>
+                    <rect x="310" y="184" width="50" height="216" fill="#94a3b8" opacity="0.8" stroke="#6b7280" strokeWidth="1"/>
+                    <rect x="460" y="176" width="50" height="224" fill="#94a3b8" opacity="0.8" stroke="#6b7280" strokeWidth="1"/>
+                    <rect x="610" y="168" width="50" height="232" fill="#94a3b8" opacity="0.8" stroke="#6b7280" strokeWidth="1"/>
                     
-                    {/* Reform bars - wider and more visible */}
-                    <rect x="220" y="260" width="50" height="140" fill="#3b82f6" opacity="0.9" stroke="#1d4ed8" strokeWidth="1"/>
-                    <rect x="370" y="235" width="50" height="165" fill="#3b82f6" opacity="0.9" stroke="#1d4ed8" strokeWidth="1"/>
-                    <rect x="520" y="210" width="50" height="190" fill="#3b82f6" opacity="0.9" stroke="#1d4ed8" strokeWidth="1"/>
-                    <rect x="670" y="185" width="50" height="215" fill="#3b82f6" opacity="0.9" stroke="#1d4ed8" strokeWidth="1"/>
+                    {/* Reform bars - starting from 0 */}
+                    <rect x="220" y="184" width="50" height="216" fill="#3b82f6" opacity="0.9" stroke="#1d4ed8" strokeWidth="1"/>
+                    <rect x="370" y="172" width="50" height="228" fill="#3b82f6" opacity="0.9" stroke="#1d4ed8" strokeWidth="1"/>
+                    <rect x="520" y="160" width="50" height="240" fill="#3b82f6" opacity="0.9" stroke="#1d4ed8" strokeWidth="1"/>
+                    <rect x="670" y="148" width="50" height="252" fill="#3b82f6" opacity="0.9" stroke="#1d4ed8" strokeWidth="1"/>
                   
                     
                     {/* Legend - larger and more prominent */}
