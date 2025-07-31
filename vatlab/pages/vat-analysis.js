@@ -58,6 +58,41 @@ export default function VATAnalysis() {
     
     return { winners, losers };
   };
+  
+  const calculateSectorBreakdown = (params) => {
+    const thresholdEffect = (params.threshold - 90000) / 90000;
+    const avgRate = (params.fullRateLaborIntensive + params.fullRateNonLaborIntensive) / 2;
+    const rateEffect = (avgRate - 20) / 20;
+    
+    // Base winner percentages by sector (at baseline)
+    const baseWinners = {
+      'Wholesale & Retail Trade': 50,
+      'Accommodation & Food': 50,
+      'Professional & Scientific': 50,
+      'Construction': 50,
+      'Manufacturing': 50
+    };
+    
+    // Adjust based on policy changes
+    const adjustments = {
+      'Wholesale & Retail Trade': thresholdEffect * 30 - rateEffect * 10, // Benefits from higher threshold
+      'Accommodation & Food': thresholdEffect * 25 - rateEffect * 15, // Labor intensive, mixed effect
+      'Professional & Scientific': thresholdEffect * 10 - rateEffect * 20, // Less threshold sensitive
+      'Construction': thresholdEffect * -10 - rateEffect * 25, // Larger firms, hurt by changes
+      'Manufacturing': thresholdEffect * -15 - rateEffect * 30 // Capital intensive, hurt most
+    };
+    
+    const result = {};
+    for (const [sector, base] of Object.entries(baseWinners)) {
+      const winners = Math.max(10, Math.min(90, base + adjustments[sector]));
+      result[sector] = {
+        winners: winners,
+        losers: 100 - winners
+      };
+    }
+    
+    return result;
+  };
 
   const formatCurrency = (value) => {
     if (Math.abs(value) >= 1e9) {
@@ -292,35 +327,39 @@ export default function VATAnalysis() {
             {/* Breakdown Details */}
             {breakdownType === 'sector' && (
               <div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <span style={{ fontSize: '0.9rem' }}>Retail & Wholesale</span>
-                    <span style={{ fontSize: '0.9rem', color: 'var(--teal-accent)', fontWeight: 'bold' }}>68% winners</span>
-                  </div>
-                  <div style={{ height: '8px', backgroundColor: 'var(--fog-gray)', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: '68%', height: '100%', backgroundColor: 'var(--teal-accent)' }}></div>
-                  </div>
-                </div>
-                
-                <div style={{ marginBottom: '1rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <span style={{ fontSize: '0.9rem' }}>Professional Services</span>
-                    <span style={{ fontSize: '0.9rem', color: 'var(--teal-accent)', fontWeight: 'bold' }}>45% winners</span>
-                  </div>
-                  <div style={{ height: '8px', backgroundColor: 'var(--fog-gray)', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: '45%', height: '100%', backgroundColor: 'var(--teal-accent)' }}></div>
-                  </div>
-                </div>
-                
-                <div style={{ marginBottom: '1rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <span style={{ fontSize: '0.9rem' }}>Manufacturing</span>
-                    <span style={{ fontSize: '0.9rem', color: 'var(--gray)', fontWeight: 'bold' }}>72% losers</span>
-                  </div>
-                  <div style={{ height: '8px', backgroundColor: 'var(--fog-gray)', borderRadius: '4px', overflow: 'hidden', display: 'flex', flexDirection: 'row-reverse' }}>
-                    <div style={{ width: '72%', height: '100%', backgroundColor: 'var(--gray)' }}></div>
-                  </div>
-                </div>
+                {(() => {
+                  const sectorData = calculateSectorBreakdown(filters);
+                  return Object.entries(sectorData).map(([sector, data]) => (
+                    <div key={sector} style={{ marginBottom: '1rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                        <span style={{ fontSize: '0.9rem' }}>{sector}</span>
+                        <span style={{ 
+                          fontSize: '0.9rem', 
+                          color: data.winners > 50 ? 'var(--teal-accent)' : 'var(--gray)', 
+                          fontWeight: 'bold' 
+                        }}>
+                          {data.winners > 50 
+                            ? `${data.winners.toFixed(0)}% winners` 
+                            : `${data.losers.toFixed(0)}% losers`}
+                        </span>
+                      </div>
+                      <div style={{ 
+                        height: '8px', 
+                        backgroundColor: 'var(--fog-gray)', 
+                        borderRadius: '4px', 
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: data.winners > 50 ? 'row' : 'row-reverse'
+                      }}>
+                        <div style={{ 
+                          width: `${data.winners > 50 ? data.winners : data.losers}%`, 
+                          height: '100%', 
+                          backgroundColor: data.winners > 50 ? 'var(--teal-accent)' : 'var(--gray)' 
+                        }}></div>
+                      </div>
+                    </div>
+                  ));
+                })()}
               </div>
             )}
             

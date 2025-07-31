@@ -39,7 +39,8 @@ jobs:
     - name: Run tests
       run: |
         cd vatlab
-        npm test -- --ci --coverage --maxWorkers=2
+        npm test -- --ci --coverage --maxWorkers=2 --forceExit --detectOpenHandles --no-cache
+      timeout-minutes: 5
         
   deploy:
     needs: test

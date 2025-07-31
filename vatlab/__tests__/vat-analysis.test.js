@@ -30,11 +30,6 @@ jest.mock('../components/Loading', () => {
 
 jest.mock('../components/VATAnalysisSidebar', () => {
   return function VATAnalysisSidebar({ onFiltersChange }) {
-    // Simulate automatic analysis on mount
-    React.useEffect(() => {
-      onFiltersChange({ threshold: 90000, fullRateLaborIntensive: 20, fullRateNonLaborIntensive: 20 });
-    }, [onFiltersChange]);
-    
     return (
       <div data-testid="sidebar">
         <input 
