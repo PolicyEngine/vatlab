@@ -5,9 +5,9 @@ A standalone PolicyEngine VAT policy analysis dashboard built with Next.js and R
 ## Features
 
 - **Interactive VAT Policy Simulation**: Configure VAT thresholds, rates, and analyze economic impacts
-- **Multiple Analysis Tabs**: 
+- **Multiple Analysis Tabs**:
   - Policy Reform Impact
-  - Calibration & Official Statistics  
+  - Calibration & Official Statistics
   - Simulation Guide
   - Replication Code
 - **Real-time Data Visualization**: Charts powered by Plotly.js
@@ -75,7 +75,7 @@ vat-dashboard-standalone/
 
 ## Data Disclaimer
 
-⚠️ **This dashboard uses simulated data for demonstration purposes only.** 
+⚠️ **This dashboard uses simulated data for demonstration purposes only.**
 
 The data shown is not real government statistics and should not be used for actual policy decisions. For real PolicyEngine analysis, visit [policyengine.org](https://policyengine.org).
 
