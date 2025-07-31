@@ -206,7 +206,7 @@ export default function VATAnalysis() {
                   </div>
                   <div style={{ fontSize: '1rem', opacity: 0.9 }}>Total Revenue</div>
                   {!isBaseline && (
-                    <div style={{ fontSize: '1.2rem', marginTop: '0.5rem', color: revenueChange >= 0 ? '#86efac' : '#fca5a5' }}>
+                    <div style={{ fontSize: '1.2rem', marginTop: '0.5rem', color: revenueChange >= 0 ? 'var(--teal-accent)' : 'var(--gray)' }}>
                       {formatPercent(revenueChangePercent)}
                     </div>
                   )}
@@ -253,32 +253,8 @@ export default function VATAnalysis() {
                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
               }}>
                 <div style={{ 
-                  width: `${businessImpact.winners}%`, 
-                  backgroundColor: '#22c55e',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontWeight: 'bold',
-                  fontSize: '1.1rem'
-                }}>
-                  {businessImpact.winners > 10 && `${businessImpact.winners.toFixed(1)}%`}
-                </div>
-                <div style={{ 
-                  width: `${businessImpact.neutral}%`, 
-                  backgroundColor: '#e5e7eb',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#6b7280',
-                  fontWeight: 'bold',
-                  fontSize: '1.1rem'
-                }}>
-                  {businessImpact.neutral > 10 && `${businessImpact.neutral.toFixed(1)}%`}
-                </div>
-                <div style={{ 
                   width: `${businessImpact.losers}%`, 
-                  backgroundColor: '#ef4444',
+                  backgroundColor: 'var(--gray)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -288,20 +264,44 @@ export default function VATAnalysis() {
                 }}>
                   {businessImpact.losers > 10 && `${businessImpact.losers.toFixed(1)}%`}
                 </div>
+                <div style={{ 
+                  width: `${businessImpact.neutral}%`, 
+                  backgroundColor: 'var(--fog-gray)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--dark-gray)',
+                  fontWeight: 'bold',
+                  fontSize: '1.1rem'
+                }}>
+                  {businessImpact.neutral > 10 && `${businessImpact.neutral.toFixed(1)}%`}
+                </div>
+                <div style={{ 
+                  width: `${businessImpact.winners}%`, 
+                  backgroundColor: 'var(--teal-accent)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontWeight: 'bold',
+                  fontSize: '1.1rem'
+                }}>
+                  {businessImpact.winners > 10 && `${businessImpact.winners.toFixed(1)}%`}
+                </div>
               </div>
               
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '16px', height: '16px', backgroundColor: '#22c55e', borderRadius: '4px' }}></div>
-                  <span style={{ fontSize: '0.9rem' }}>Winners (gain &gt;5%)</span>
+                  <div style={{ width: '16px', height: '16px', backgroundColor: 'var(--gray)', borderRadius: '4px' }}></div>
+                  <span style={{ fontSize: '0.9rem' }}>Losers (lose &gt;5%)</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '16px', height: '16px', backgroundColor: '#e5e7eb', borderRadius: '4px' }}></div>
+                  <div style={{ width: '16px', height: '16px', backgroundColor: 'var(--fog-gray)', borderRadius: '4px' }}></div>
                   <span style={{ fontSize: '0.9rem' }}>Minimal impact (±5%)</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '16px', height: '16px', backgroundColor: '#ef4444', borderRadius: '4px' }}></div>
-                  <span style={{ fontSize: '0.9rem' }}>Losers (lose &gt;5%)</span>
+                  <div style={{ width: '16px', height: '16px', backgroundColor: 'var(--teal-accent)', borderRadius: '4px' }}></div>
+                  <span style={{ fontSize: '0.9rem' }}>Winners (gain &gt;5%)</span>
                 </div>
               </div>
             </div>
