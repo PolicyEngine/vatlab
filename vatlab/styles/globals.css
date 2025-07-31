@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Serif:ital,opsz,wght@0,8..144,100..900;1,8..144,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
 
 :root {
   --blue-light: #D8E6F3;
@@ -30,7 +30,7 @@
 
 html,
 body {
-  font-family: 'Roboto Serif', serif;
+  font-family: 'Roboto', sans-serif;
   background-color: var(--fog-gray);
   color: var(--darkest-blue);
   line-height: 1.6;
@@ -216,7 +216,7 @@ select,
   border: 2px solid var(--medium-light-gray);
   border-radius: 8px;
   font-size: 1rem;
-  font-family: 'Roboto Serif', serif;
+  font-family: 'Roboto', sans-serif;
   background-color: var(--white);
   transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
 }
@@ -231,7 +231,7 @@ select:focus,
 /* React-select styles */
 .react-select-container {
   width: 100%;
-  font-family: 'Roboto Serif', serif;
+  font-family: 'Roboto', sans-serif;
 }
 
 .react-select__control {
@@ -291,7 +291,7 @@ button {
   display: block;
   width: 100%;
   margin-top: 1rem;
-  font-family: 'Roboto Serif', serif;
+  font-family: 'Roboto', sans-serif;
 }
 
 button:hover {
