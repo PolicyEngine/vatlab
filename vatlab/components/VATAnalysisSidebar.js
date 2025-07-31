@@ -35,9 +35,6 @@ export default function VATAnalysisSidebar({ onFiltersChange, initialFilters, lo
       
       <div className="sidebar-card" style={{ overflow: 'auto', maxHeight: 'calc(100vh - 100px)', padding: '1.5rem' }}>
         <h3 className="sidebar-title" style={{ textAlign: 'center', marginBottom: '1rem' }}>VAT Policy Reform</h3>
-        <p style={{ marginBottom: '1rem', fontSize: '0.9rem', lineHeight: 1.4 }}>
-          Configure your VAT reform to compare against the current UK policy (£90k threshold, 20% rate for all sectors).
-        </p>
         
         {/* Current UK Policy Info Box */}
         <div style={{ 
@@ -48,11 +45,10 @@ export default function VATAnalysisSidebar({ onFiltersChange, initialFilters, lo
           border: '1px solid var(--blue-primary)',
           fontSize: '0.85rem'
         }}>
-          <strong style={{ color: 'var(--blue-pressed)' }}>Baseline: Current UK VAT Policy</strong>
+          <strong style={{ color: 'var(--blue-pressed)' }}>Baseline: Current UK Policy</strong>
           <div style={{ marginTop: '0.5rem', color: 'var(--dark-gray)' }}>
             • £90,000 registration threshold<br/>
-            • 20% standard VAT rate for all sectors<br/>
-            • No graduated threshold system
+            • 20% standard VAT rate for all sectors
           </div>
         </div>
 
