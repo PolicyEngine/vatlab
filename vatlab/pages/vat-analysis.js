@@ -452,42 +452,7 @@ export default function VATAnalysis() {
                   </div>
                 </div>
               </div>
-              
-              {analysisResults && (
-                <div style={{ 
-                  backgroundColor: '#fafafa',
-                  padding: '1.5rem',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  marginTop: '1.5rem'
-                }}>
-                  <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>Policy Comparison</h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                    <div>
-                      <h4 style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '0.5rem' }}>BASELINE (Current UK Policy)</h4>
-                      <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.9rem', lineHeight: 1.6 }}>
-                        <li>£90,000 registration threshold</li>
-                        <li>20% standard VAT rate for all sectors</li>
-                        <li>No graduated threshold system</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 style={{ color: '#3b82f6', fontSize: '0.9rem', marginBottom: '0.5rem' }}>REFORM (Your Policy)</h4>
-                      <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.9rem', lineHeight: 1.6 }}>
-                        <li>£{analysisResults.threshold?.toLocaleString()} registration threshold{analysisResults.graduatedEndThreshold && ` (graduating to £${analysisResults.graduatedEndThreshold.toLocaleString()})`}</li>
-                        <li>{analysisResults.fullRateLaborIntensive}% rate for labor-intensive sectors</li>
-                        <li>{analysisResults.fullRateNonLaborIntensive}% rate for other businesses</li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div style={{ marginTop: '1rem', fontSize: '0.85rem', color: '#6b7280' }}>
-                    Analysis year: {analysisResults.year} | Elasticity: {analysisResults.elasticity}
-                  </div>
-                </div>
-              )}
-            ) : null}
-            
-            {!analysisResults ? (
+            ) : (
               <div>
                 <div style={{ 
                   backgroundColor: '#f0f9ff',
@@ -588,6 +553,40 @@ export default function VATAnalysis() {
                 </div>
               </div>
             )}
+            
+            {analysisResults && (
+              <div style={{ 
+                backgroundColor: '#fafafa',
+                padding: '1.5rem',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+                marginTop: '1.5rem'
+              }}>
+                <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>Policy Comparison</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                  <div>
+                    <h4 style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '0.5rem' }}>BASELINE (Current UK Policy)</h4>
+                    <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                      <li>£90,000 registration threshold</li>
+                      <li>20% standard VAT rate for all sectors</li>
+                      <li>No graduated threshold system</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 style={{ color: '#3b82f6', fontSize: '0.9rem', marginBottom: '0.5rem' }}>REFORM (Your Policy)</h4>
+                    <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                      <li>£{analysisResults.threshold?.toLocaleString()} registration threshold{analysisResults.graduatedEndThreshold && ` (graduating to £${analysisResults.graduatedEndThreshold.toLocaleString()})`}</li>
+                      <li>{analysisResults.fullRateLaborIntensive}% rate for labor-intensive sectors</li>
+                      <li>{analysisResults.fullRateNonLaborIntensive}% rate for other businesses</li>
+                    </ul>
+                  </div>
+                </div>
+                <div style={{ marginTop: '1rem', fontSize: '0.85rem', color: '#6b7280' }}>
+                  Analysis year: {analysisResults.year} | Elasticity: {analysisResults.elasticity}
+                </div>
+              </div>
+            )}
+            
             <div className="helper-text">
               <span className="info-icon" title="About this analysis">ⓘ</span>
               <span>
