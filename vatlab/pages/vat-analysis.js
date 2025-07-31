@@ -15,7 +15,7 @@ export default function VATAnalysis() {
   });
   
   const [analysisResults, setAnalysisResults] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [breakdownType, setBreakdownType] = useState('sector');
 
   // Helper functions
   const isBaselinePolicy = (params) => {
@@ -43,20 +43,20 @@ export default function VATAnalysis() {
     
     let winners, losers;
     if (thresholdIncrease && rateDecrease) {
-      winners = 48.5;
-      losers = 6.2;
+      winners = 62.3;
+      losers = 37.7;
     } else if (thresholdIncrease || rateDecrease) {
-      winners = 32.8;
-      losers = 11.4;
+      winners = 54.2;
+      losers = 45.8;
     } else if (params.threshold < 90000 || avgRate > 20) {
-      winners = 8.9;
-      losers = 37.6;
+      winners = 28.5;
+      losers = 71.5;
     } else {
-      winners = 15.0;
-      losers = 15.0;
+      winners = 50.0;
+      losers = 50.0;
     }
     
-    return { winners, losers, neutral: 100 - winners - losers };
+    return { winners, losers };
   };
 
   const formatCurrency = (value) => {
@@ -84,39 +84,37 @@ export default function VATAnalysis() {
   const isBaseline = isBaselinePolicy(filters);
 
   const handleFiltersChange = (newFilters) => {
-    setLoading(true);
-    setTimeout(() => {
-      setAnalysisResults(newFilters);
-      setFilters(newFilters);
-      setLoading(false);
-    }, 500);
+    // Instant update
+    setAnalysisResults(newFilters);
+    setFilters(newFilters);
   };
 
   return (
     <Layout>
-      {/* Watermark */}
-      <div style={{
-        position: 'fixed',
-        top: '50%',
-        left: '60%',
-        transform: 'translate(-50%, -50%)',
-        fontSize: '6rem',
-        fontWeight: 'bold',
-        color: 'rgba(255, 0, 0, 0.08)',
-        zIndex: 1000,
-        pointerEvents: 'none',
-        userSelect: 'none',
-        textShadow: '2px 2px 4px rgba(0,0,0,0.05)',
-        whiteSpace: 'nowrap'
-      }}>
-        FAKE DATA
-      </div>
+      {/* Watermark - only show when displaying data */}
+      {!isBaseline && (
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '60%',
+          transform: 'translate(-50%, -50%)',
+          fontSize: '6rem',
+          fontWeight: 'bold',
+          color: 'rgba(255, 0, 0, 0.08)',
+          zIndex: 1000,
+          pointerEvents: 'none',
+          userSelect: 'none',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.05)',
+          whiteSpace: 'nowrap'
+        }}>
+          FAKE DATA
+        </div>
+      )}
       
       <div className="container">
         <VATAnalysisSidebar 
           onFiltersChange={handleFiltersChange} 
           initialFilters={filters} 
-          loading={loading} 
         />
         
         <div className="main-content">
@@ -194,44 +192,28 @@ export default function VATAnalysis() {
                   boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
                 }}
               >
-                <div style={{ textAlign: 'center', padding: '2rem' }}>
-                  <h2 style={{ fontSize: '1.5rem', marginBottom: '2rem', opacity: 0.9 }}>
-                    Your VAT Reform Impact
-                  </h2>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '3rem' }}>
-                <div>
-                  <div style={{ fontSize: '3rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                    {formatCurrency(currentRevenue)}
-                  </div>
-                  <div style={{ fontSize: '1rem', opacity: 0.9 }}>Total Revenue</div>
-                  {!isBaseline && (
-                    <div style={{ fontSize: '1.2rem', marginTop: '0.5rem', color: revenueChange >= 0 ? 'var(--teal-accent)' : 'var(--gray)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem', padding: '1.5rem' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '2.2rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>
                       {formatPercent(revenueChangePercent)}
                     </div>
-                  )}
-                </div>
-                
-                <div>
-                  <div style={{ fontSize: '3rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                    2.3m
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Revenue Change</div>
                   </div>
-                  <div style={{ fontSize: '1rem', opacity: 0.9 }}>Businesses Affected</div>
-                </div>
-                
-                <div>
-                  <div style={{ fontSize: '3rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                    {businessImpact.winners.toFixed(1)}%
-                  </div>
-                  <div style={{ fontSize: '1rem', opacity: 0.9 }}>Winners</div>
-                  {!isBaseline && (
-                    <div style={{ fontSize: '0.9rem', marginTop: '0.5rem', opacity: 0.8 }}>
-                      {businessImpact.losers.toFixed(1)}% losers
+                  
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '2.2rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>
+                      {businessImpact.winners.toFixed(1)}%
                     </div>
-                  )}
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Winners</div>
+                  </div>
+                  
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '2.2rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>
+                      {businessImpact.losers.toFixed(1)}%
+                    </div>
+                    <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Losers</div>
+                  </div>
                 </div>
-              </div>
-            </div>
           </motion.div>
 
 
@@ -242,7 +224,24 @@ export default function VATAnalysis() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <h3 style={{ marginTop: 0, marginBottom: '1.5rem' }}>Business Impact Distribution</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ margin: 0 }}>Business Impact Distribution</h3>
+              <select
+                value={breakdownType}
+                onChange={(e) => setBreakdownType(e.target.value)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '6px',
+                  border: '2px solid var(--medium-light-gray)',
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  backgroundColor: 'var(--white)'
+                }}
+              >
+                <option value="sector">By Sector</option>
+                <option value="size">By Employee Count</option>
+              </select>
+            </div>
             
             <div style={{ marginBottom: '2rem' }}>
               <div style={{ 
@@ -265,18 +264,6 @@ export default function VATAnalysis() {
                   {businessImpact.losers > 10 && `${businessImpact.losers.toFixed(1)}%`}
                 </div>
                 <div style={{ 
-                  width: `${businessImpact.neutral}%`, 
-                  backgroundColor: 'var(--fog-gray)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--dark-gray)',
-                  fontWeight: 'bold',
-                  fontSize: '1.1rem'
-                }}>
-                  {businessImpact.neutral > 10 && `${businessImpact.neutral.toFixed(1)}%`}
-                </div>
-                <div style={{ 
                   width: `${businessImpact.winners}%`, 
                   backgroundColor: 'var(--teal-accent)',
                   display: 'flex',
@@ -293,42 +280,81 @@ export default function VATAnalysis() {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <div style={{ width: '16px', height: '16px', backgroundColor: 'var(--gray)', borderRadius: '4px' }}></div>
-                  <span style={{ fontSize: '0.9rem' }}>Losers (lose &gt;5%)</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '16px', height: '16px', backgroundColor: 'var(--fog-gray)', borderRadius: '4px' }}></div>
-                  <span style={{ fontSize: '0.9rem' }}>Minimal impact (±5%)</span>
+                  <span style={{ fontSize: '0.9rem' }}>Businesses losing revenue</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <div style={{ width: '16px', height: '16px', backgroundColor: 'var(--teal-accent)', borderRadius: '4px' }}></div>
-                  <span style={{ fontSize: '0.9rem' }}>Winners (gain &gt;5%)</span>
+                  <span style={{ fontSize: '0.9rem' }}>Businesses gaining revenue</span>
                 </div>
               </div>
             </div>
 
-            {!isBaseline && (
-              <div style={{ 
-                backgroundColor: '#f3f4f6', 
-                padding: '1rem', 
-                borderRadius: '8px',
-                fontSize: '0.9rem',
-                lineHeight: 1.6
-              }}>
-                <strong>Key Insights:</strong>
-                <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.5rem' }}>
-                  {filters.threshold > 90000 && (
-                    <li>Higher threshold reduces VAT burden on small businesses</li>
-                  )}
-                  {filters.threshold < 90000 && (
-                    <li>Lower threshold brings more businesses into VAT system</li>
-                  )}
-                  {((filters.fullRateLaborIntensive + filters.fullRateNonLaborIntensive) / 2) > 20 && (
-                    <li>Higher rates increase revenue but may impact business growth</li>
-                  )}
-                  {((filters.fullRateLaborIntensive + filters.fullRateNonLaborIntensive) / 2) < 20 && (
-                    <li>Lower rates reduce business costs but decrease revenue</li>
-                  )}
-                </ul>
+            {/* Breakdown Details */}
+            {breakdownType === 'sector' && (
+              <div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '0.9rem' }}>Retail & Wholesale</span>
+                    <span style={{ fontSize: '0.9rem', color: 'var(--teal-accent)', fontWeight: 'bold' }}>68% winners</span>
+                  </div>
+                  <div style={{ height: '8px', backgroundColor: 'var(--fog-gray)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: '68%', height: '100%', backgroundColor: 'var(--teal-accent)' }}></div>
+                  </div>
+                </div>
+                
+                <div style={{ marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '0.9rem' }}>Professional Services</span>
+                    <span style={{ fontSize: '0.9rem', color: 'var(--teal-accent)', fontWeight: 'bold' }}>45% winners</span>
+                  </div>
+                  <div style={{ height: '8px', backgroundColor: 'var(--fog-gray)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: '45%', height: '100%', backgroundColor: 'var(--teal-accent)' }}></div>
+                  </div>
+                </div>
+                
+                <div style={{ marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '0.9rem' }}>Manufacturing</span>
+                    <span style={{ fontSize: '0.9rem', color: 'var(--gray)', fontWeight: 'bold' }}>72% losers</span>
+                  </div>
+                  <div style={{ height: '8px', backgroundColor: 'var(--fog-gray)', borderRadius: '4px', overflow: 'hidden', display: 'flex', flexDirection: 'row-reverse' }}>
+                    <div style={{ width: '72%', height: '100%', backgroundColor: 'var(--gray)' }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {breakdownType === 'size' && (
+              <div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '0.9rem' }}>1-9 employees</span>
+                    <span style={{ fontSize: '0.9rem', color: 'var(--teal-accent)', fontWeight: 'bold' }}>78% winners</span>
+                  </div>
+                  <div style={{ height: '8px', backgroundColor: 'var(--fog-gray)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: '78%', height: '100%', backgroundColor: 'var(--teal-accent)' }}></div>
+                  </div>
+                </div>
+                
+                <div style={{ marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '0.9rem' }}>10-49 employees</span>
+                    <span style={{ fontSize: '0.9rem', color: 'var(--teal-accent)', fontWeight: 'bold' }}>52% winners</span>
+                  </div>
+                  <div style={{ height: '8px', backgroundColor: 'var(--fog-gray)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: '52%', height: '100%', backgroundColor: 'var(--teal-accent)' }}></div>
+                  </div>
+                </div>
+                
+                <div style={{ marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '0.9rem' }}>50+ employees</span>
+                    <span style={{ fontSize: '0.9rem', color: 'var(--gray)', fontWeight: 'bold' }}>65% losers</span>
+                  </div>
+                  <div style={{ height: '8px', backgroundColor: 'var(--fog-gray)', borderRadius: '4px', overflow: 'hidden', display: 'flex', flexDirection: 'row-reverse' }}>
+                    <div style={{ width: '65%', height: '100%', backgroundColor: 'var(--gray)' }}></div>
+                  </div>
+                </div>
               </div>
             )}
           </motion.div>

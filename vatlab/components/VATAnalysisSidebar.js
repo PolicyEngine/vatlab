@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 
-export default function VATAnalysisSidebar({ onFiltersChange, initialFilters, loading }) {
+export default function VATAnalysisSidebar({ onFiltersChange, initialFilters }) {
   const [filters, setFilters] = useState(initialFilters || {
     threshold: 90000,
     graduatedEndThreshold: '',
@@ -16,11 +16,10 @@ export default function VATAnalysisSidebar({ onFiltersChange, initialFilters, lo
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
+    // Automatically trigger analysis
+    onFiltersChange(newFilters);
   };
 
-  const handleAnalyse = () => {
-    onFiltersChange(filters);
-  };
 
   return (
     <motion.div
@@ -226,23 +225,6 @@ export default function VATAnalysisSidebar({ onFiltersChange, initialFilters, lo
           </div>
         </div>
 
-        <motion.button 
-          onClick={handleAnalyse} 
-          disabled={loading}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.98 }}
-          className={!loading ? "pulse" : ""}
-          style={{
-            width: '100%',
-            padding: '1rem 2rem',
-            fontSize: '1.1rem',
-            fontWeight: '600',
-            textAlign: 'center',
-            marginTop: '1.5rem'
-          }}
-        >
-          {loading ? 'Loading...' : 'Analyse VAT Policy'}
-        </motion.button>
       </div>
     </motion.div>
   );

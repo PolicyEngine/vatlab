@@ -30,11 +30,18 @@ jest.mock('../components/Loading', () => {
 
 jest.mock('../components/VATAnalysisSidebar', () => {
   return function VATAnalysisSidebar({ onFiltersChange }) {
+    // Simulate automatic analysis on mount
+    React.useEffect(() => {
+      onFiltersChange({ threshold: 90000, fullRateLaborIntensive: 20, fullRateNonLaborIntensive: 20 });
+    }, [onFiltersChange]);
+    
     return (
       <div data-testid="sidebar">
-        <button onClick={() => onFiltersChange({ threshold: 100000 })}>
-          Analyse
-        </button>
+        <input 
+          type="number" 
+          onChange={(e) => onFiltersChange({ threshold: parseInt(e.target.value) || 90000 })}
+          placeholder="Threshold"
+        />
       </div>
     );
   };
@@ -90,29 +97,23 @@ describe('VATAnalysis Page', () => {
     // This test ensures that all helper functions are properly defined
     // to prevent runtime errors like "calculateWinners is not defined"
     
-    // We'll check by rendering the component and simulating an analysis
-    const { getByText } = render(<VATAnalysis />);
-    
-    // Find and click the analyze button to trigger function calls
-    const analyzeButton = getByText('Analyse');
-    
-    // This should not throw any errors
+    // Component should render without throwing errors
     expect(() => {
-      fireEvent.click(analyzeButton);
+      render(<VATAnalysis />);
     }).not.toThrow();
   });
 
   it('handles analysis with changed parameters without errors', async () => {
-    const { getByText } = render(<VATAnalysis />);
+    const { getByPlaceholderText } = render(<VATAnalysis />);
     
-    // Click analyze button with changed parameters
-    const analyzeButton = getByText('Analyse');
-    fireEvent.click(analyzeButton);
+    // Change threshold value
+    const thresholdInput = getByPlaceholderText('Threshold');
+    fireEvent.change(thresholdInput, { target: { value: '100000' } });
     
     // Wait for any async operations
     await waitFor(() => {
       // Component should render without throwing errors
-      expect(getByText('PolicyEngine VATLab')).toBeInTheDocument();
+      expect(screen.getByText('PolicyEngine VATLab')).toBeInTheDocument();
     });
   });
 });

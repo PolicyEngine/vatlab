@@ -98,20 +98,20 @@ describe('VAT Analysis Helper Functions', () => {
       
       let winners, losers;
       if (thresholdIncrease && rateDecrease) {
-        winners = 48.5;
-        losers = 6.2;
+        winners = 62.3;
+        losers = 37.7;
       } else if (thresholdIncrease || rateDecrease) {
-        winners = 32.8;
-        losers = 11.4;
+        winners = 54.2;
+        losers = 45.8;
       } else if (params.threshold < 90000 || avgRate > 20) {
-        winners = 8.9;
-        losers = 37.6;
+        winners = 28.5;
+        losers = 71.5;
       } else {
-        winners = 15.0;
-        losers = 15.0;
+        winners = 50.0;
+        losers = 50.0;
       }
       
-      return { winners, losers, neutral: 100 - winners - losers };
+      return { winners, losers };
     };
 
     // Test baseline detection
@@ -135,17 +135,15 @@ describe('VAT Analysis Helper Functions', () => {
       fullRateLaborIntensive: 20,
       fullRateNonLaborIntensive: 20
     });
-    expect(result1.winners).toBe(32.8);
-    expect(result1.losers).toBe(11.4);
-    expect(result1.neutral).toBeCloseTo(55.8);
-
+    expect(result1.winners).toBe(54.2);
+    expect(result1.losers).toBe(45.8);
+    
     const result2 = calculateBusinessImpact({
       threshold: 80000,
       fullRateLaborIntensive: 22,
       fullRateNonLaborIntensive: 22
     });
-    expect(result2.winners).toBe(8.9);
-    expect(result2.losers).toBe(37.6);
-    expect(result2.neutral).toBeCloseTo(53.5);
+    expect(result2.winners).toBe(28.5);
+    expect(result2.losers).toBe(71.5);
   });
 });
