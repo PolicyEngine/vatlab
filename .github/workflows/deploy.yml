@@ -39,7 +39,7 @@ jobs:
     - name: Run tests
       run: |
         cd vatlab
-        npm test -- --passWithNoTests
+        npm test -- --ci --coverage --maxWorkers=2
         
   deploy:
     needs: test
