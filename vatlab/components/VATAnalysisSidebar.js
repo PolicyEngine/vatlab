@@ -33,38 +33,54 @@ export default function VATAnalysisSidebar({ onFiltersChange, initialFilters, lo
         <img src="/images/logo.png" alt="PolicyEngine Logo" />
       </div>
       
-      <div className="sidebar-card" style={{ overflow: 'auto', maxHeight: 'calc(100vh - 120px)' }}>
-        <h3 className="sidebar-title" style={{ textAlign: 'center' }}>VAT Policy Reform</h3>
-        <p style={{ marginBottom: '1.5rem', fontSize: '0.95rem', lineHeight: 1.5 }}>
+      <div className="sidebar-card" style={{ overflow: 'auto', maxHeight: 'calc(100vh - 100px)', padding: '1.5rem' }}>
+        <h3 className="sidebar-title" style={{ textAlign: 'center', marginBottom: '1rem' }}>VAT Policy Reform</h3>
+        <p style={{ marginBottom: '1rem', fontSize: '0.9rem', lineHeight: 1.4 }}>
           Configure your VAT reform to compare against the current UK policy (£90k threshold, 20% rate for all sectors).
         </p>
         
         {/* Current UK Policy Info Box */}
         <div style={{ 
-          backgroundColor: '#f0f9ff', 
+          backgroundColor: 'var(--blue-98)', 
           padding: '1rem', 
           borderRadius: '8px', 
           marginBottom: '1.5rem',
-          border: '1px solid #3b82f6',
+          border: '1px solid var(--blue-primary)',
           fontSize: '0.85rem'
         }}>
-          <strong style={{ color: '#1e40af' }}>Baseline: Current UK VAT Policy</strong>
-          <div style={{ marginTop: '0.5rem', color: '#374151' }}>
+          <strong style={{ color: 'var(--blue-pressed)' }}>Baseline: Current UK VAT Policy</strong>
+          <div style={{ marginTop: '0.5rem', color: 'var(--dark-gray)' }}>
             • £90,000 registration threshold<br/>
             • 20% standard VAT rate for all sectors<br/>
             • No graduated threshold system
           </div>
         </div>
 
-        <div className="form-group">
-          <label>Year Applies:</label>
-          <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>
-            year when the policy reform takes effect
+        {/* Policy Parameters Section */}
+        <div style={{ 
+          fontSize: '0.85rem', 
+          fontWeight: '600', 
+          color: 'var(--gray)', 
+          marginBottom: '0.75rem',
+          marginTop: '1rem',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em'
+        }}>
+          Policy Parameters
+        </div>
+
+        <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ flex: 1 }}>
+            <label style={{ marginBottom: '0.25rem' }}>Year Applies</label>
+            <div style={{ fontSize: '0.75rem', color: 'var(--gray)', lineHeight: 1.3 }}>
+              Year when reform takes effect
+            </div>
           </div>
           <select
             value={filters.year}
             onChange={(e) => handleFilterChange('year', parseInt(e.target.value))}
             className="select-dropdown"
+            style={{ width: '120px', flexShrink: 0 }}
           >
             {years.map(year => (
               <option key={year} value={year}>
@@ -74,10 +90,12 @@ export default function VATAnalysisSidebar({ onFiltersChange, initialFilters, lo
           </select>
         </div>
 
-        <div className="form-group">
-          <label>Registration Threshold:</label>
-          <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>
-            annual turnover above which businesses must register for vat
+        <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ flex: 1 }}>
+            <label style={{ marginBottom: '0.25rem' }}>Registration Threshold</label>
+            <div style={{ fontSize: '0.75rem', color: 'var(--gray)', lineHeight: 1.3 }}>
+              Annual turnover for VAT registration
+            </div>
           </div>
           <input
             type="number"
@@ -87,30 +105,44 @@ export default function VATAnalysisSidebar({ onFiltersChange, initialFilters, lo
             placeholder="90000"
             min="0"
             step="1000"
+            style={{
+              width: '120px',
+              flexShrink: 0,
+              ...(filters.threshold !== 90000 ? {
+                borderColor: 'var(--blue-primary)',
+                borderWidth: '2px',
+                boxShadow: '0 0 0 2px var(--blue-light)'
+              } : {})
+            }}
           />
         </div>
 
-        <div className="form-group">
-          <label>Graduated End Threshold (optional):</label>
-          <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>
-            upper threshold for graduated vat system with smooth transition
+        <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ flex: 1 }}>
+            <label style={{ marginBottom: '0.25rem' }}>Graduated End Threshold</label>
+            <div style={{ fontSize: '0.75rem', color: 'var(--gray)', lineHeight: 1.3 }}>
+              Upper threshold for smooth transition (optional)
+            </div>
           </div>
           <input
             type="number"
             value={filters.graduatedEndThreshold}
             onChange={(e) => handleFilterChange('graduatedEndThreshold', e.target.value ? parseInt(e.target.value) : '')}
             className="select-dropdown"
-            placeholder="Leave empty if not applicable"
+            placeholder="None"
             min="0"
             step="1000"
+            style={{ width: '120px', flexShrink: 0 }}
           />
         </div>
 
 
-        <div className="form-group">
-          <label>Labor-Intensive Rate (%):</label>
-          <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>
-            vat rate applied to labor-intensive services
+        <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ flex: 1 }}>
+            <label style={{ marginBottom: '0.25rem' }}>Labor-Intensive Rate (%)</label>
+            <div style={{ fontSize: '0.75rem', color: 'var(--gray)', lineHeight: 1.3 }}>
+              VAT rate for labor-intensive services
+            </div>
           </div>
           <input
             type="number"
@@ -121,13 +153,24 @@ export default function VATAnalysisSidebar({ onFiltersChange, initialFilters, lo
             min="0"
             max="100"
             step="0.1"
+            style={{
+              width: '120px',
+              flexShrink: 0,
+              ...(filters.fullRateLaborIntensive !== 20 ? {
+                borderColor: 'var(--blue-primary)',
+                borderWidth: '2px',
+                boxShadow: '0 0 0 2px var(--blue-light)'
+              } : {})
+            }}
           />
         </div>
 
-        <div className="form-group">
-          <label>Non-Labor Intensive Rate (%):</label>
-          <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>
-            standard vat rate for all other business sectors
+        <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ flex: 1 }}>
+            <label style={{ marginBottom: '0.25rem' }}>Standard Rate (%)</label>
+            <div style={{ fontSize: '0.75rem', color: 'var(--gray)', lineHeight: 1.3 }}>
+              VAT rate for other business sectors
+            </div>
           </div>
           <input
             type="number"
@@ -138,24 +181,53 @@ export default function VATAnalysisSidebar({ onFiltersChange, initialFilters, lo
             min="0"
             max="100"
             step="0.1"
+            style={{
+              width: '120px',
+              flexShrink: 0,
+              ...(filters.fullRateNonLaborIntensive !== 20 ? {
+                borderColor: 'var(--blue-primary)',
+                borderWidth: '2px',
+                boxShadow: '0 0 0 2px var(--blue-light)'
+              } : {})
+            }}
           />
         </div>
 
-        <div className="form-group">
-          <label>Elasticity of firm turnover to VAT threshold:</label>
-          <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>
-            how responsive firms are to changes in vat thresholds
+        {/* Model Parameters Section */}
+        <div style={{ 
+          marginTop: '1.5rem',
+          paddingTop: '1.5rem',
+          borderTop: '2px solid var(--medium-dark-gray)'
+        }}>
+          <div style={{ 
+            fontSize: '0.85rem', 
+            fontWeight: '600', 
+            color: 'var(--gray)', 
+            marginBottom: '0.75rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em'
+          }}>
+            Model Parameters
           </div>
-          <input
-            type="number"
-            value={filters.elasticity}
-            onChange={(e) => handleFilterChange('elasticity', parseFloat(e.target.value) || 0)}
-            className="select-dropdown"
-            placeholder="-0.01"
-            min="-5"
-            max="5"
-            step="0.1"
-          />
+          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: 0 }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ marginBottom: '0.25rem' }}>Elasticity</label>
+              <div style={{ fontSize: '0.75rem', color: 'var(--gray)', lineHeight: 1.3 }}>
+                Firm response to threshold changes
+              </div>
+            </div>
+            <input
+              type="number"
+              value={filters.elasticity}
+              onChange={(e) => handleFilterChange('elasticity', parseFloat(e.target.value) || 0)}
+              className="select-dropdown"
+              placeholder="-0.01"
+              min="-5"
+              max="5"
+              step="0.1"
+              style={{ width: '120px', flexShrink: 0 }}
+            />
+          </div>
         </div>
 
         <motion.button 

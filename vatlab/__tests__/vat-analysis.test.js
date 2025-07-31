@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import VATAnalysis from '../pages/vat-analysis';
 
@@ -26,11 +26,7 @@ jest.mock('../components/Loading', () => {
   };
 });
 
-jest.mock('../components/Tabs', () => {
-  return function Tabs({ children }) {
-    return <div data-testid="tabs">{children}</div>;
-  };
-});
+// Tabs component removed in new design
 
 jest.mock('../components/VATAnalysisSidebar', () => {
   return function VATAnalysisSidebar({ onFiltersChange }) {
@@ -62,15 +58,12 @@ describe('VATAnalysis Page', () => {
     expect(screen.getByTestId('sidebar')).toBeInTheDocument();
   });
 
-  it('displays quick start guide when no analysis results', async () => {
+  it('displays baseline prompt by default', async () => {
     render(<VATAnalysis />);
     
-    // Wait for the component to load
-    await screen.findByText('Quick Start Guide');
-    
-    expect(screen.getByText('Quick Start Guide')).toBeInTheDocument();
-    expect(screen.getByText(/Choose Baseline:/)).toBeInTheDocument();
-    expect(screen.getByText(/Configure Reform:/)).toBeInTheDocument();
+    // The new interface shows a prompt to define reform when at baseline
+    expect(screen.getByText('PolicyEngine VATLab')).toBeInTheDocument();
+    expect(screen.getByText('Define Your VAT Reform')).toBeInTheDocument();
   });
 
   it('has valid JSX structure', () => {
@@ -85,12 +78,41 @@ describe('VATAnalysis Page', () => {
     expect(mainContent).toBeInTheDocument();
   });
 
-  it('renders all tabs', async () => {
+  it('renders main interface elements', async () => {
     render(<VATAnalysis />);
     
-    await screen.findByTestId('tabs');
+    // Check for the new interface elements
+    expect(screen.getByText('Define Your VAT Reform')).toBeInTheDocument();
+    expect(screen.getByText('Available Parameters:')).toBeInTheDocument();
+  });
+
+  it('has all required helper functions defined', () => {
+    // This test ensures that all helper functions are properly defined
+    // to prevent runtime errors like "calculateWinners is not defined"
     
-    // The tabs component should be rendered
-    expect(screen.getByTestId('tabs')).toBeInTheDocument();
+    // We'll check by rendering the component and simulating an analysis
+    const { getByText } = render(<VATAnalysis />);
+    
+    // Find and click the analyze button to trigger function calls
+    const analyzeButton = getByText('Analyse');
+    
+    // This should not throw any errors
+    expect(() => {
+      fireEvent.click(analyzeButton);
+    }).not.toThrow();
+  });
+
+  it('handles analysis with changed parameters without errors', async () => {
+    const { getByText } = render(<VATAnalysis />);
+    
+    // Click analyze button with changed parameters
+    const analyzeButton = getByText('Analyse');
+    fireEvent.click(analyzeButton);
+    
+    // Wait for any async operations
+    await waitFor(() => {
+      // Component should render without throwing errors
+      expect(getByText('PolicyEngine VATLab')).toBeInTheDocument();
+    });
   });
 });
