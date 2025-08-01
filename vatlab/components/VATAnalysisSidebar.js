@@ -33,7 +33,7 @@ export default function VATAnalysisSidebar({
       transition={{ duration: 0.5 }}
     >
       <div className="top-logo">
-        <img src="/images/logo.png" alt="PolicyEngine Logo" />
+        <img src="/vatlab/images/logo.png" alt="PolicyEngine Logo" />
       </div>
 
       <div

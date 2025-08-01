@@ -14,7 +14,7 @@ export default function Layout({ children }) {
           name="description"
           content="Analyze VAT policy reforms and their economic impacts using PolicyEngine microsimulation models"
         />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/vatlab/favicon.ico" />
       </Head>
 
       <motion.main
