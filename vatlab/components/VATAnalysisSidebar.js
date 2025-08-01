@@ -33,6 +33,7 @@ export default function VATAnalysisSidebar({
       transition={{ duration: 0.5 }}
     >
       <div className="top-logo">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/vatlab/images/logo.png" alt="PolicyEngine Logo" />
       </div>
 
