@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import VATAnalysis from "../pages/vat-analysis";
+import VATAnalysis from "../pages/index";
 
 // Mock framer-motion to avoid animation issues in tests
 jest.mock("framer-motion", () => ({

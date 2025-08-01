@@ -49,7 +49,7 @@ describe("VAT Analysis Helper Functions", () => {
   });
 
   it("should have all calculation functions defined in component", () => {
-    const VATAnalysis = require("../pages/vat-analysis").default;
+    const VATAnalysis = require("../pages/index").default;
     const componentString = VATAnalysis.toString();
 
     // Check that all required calculation functions are defined
@@ -67,7 +67,7 @@ describe("VAT Analysis Helper Functions", () => {
   });
 
   it("should render Policy Reform Impact tab without errors when parameters change", () => {
-    const VATAnalysis = require("../pages/vat-analysis").default;
+    const VATAnalysis = require("../pages/index").default;
 
     // Mock analysis results with non-baseline parameters
     const mockResults = {
