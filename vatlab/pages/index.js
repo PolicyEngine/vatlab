@@ -1063,7 +1063,7 @@ export default function VATAnalysis() {
             </span>
             <span>
               This dashboard is a demo created with fake data. It shows
-              PolicyEngine's analysis of VAT reform options for the UK. Adjust
+              PolicyEngine&apos;s analysis of VAT reform options for the UK. Adjust
               parameters in the sidebar to see how different policies would
               impact revenue and businesses.
             </span>

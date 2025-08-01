@@ -406,11 +406,13 @@ nav {
   display: flex;
   justify-content: center;
   margin-bottom: 2rem;
+  padding: 0 1rem;
 }
 
 .top-logo img {
-  height: 80px;
-  width: auto;
+  width: 70%;
+  height: auto;
+  max-width: 250px;
 }
 
 footer {
