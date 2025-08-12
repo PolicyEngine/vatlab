@@ -28,17 +28,17 @@ jobs:
     
     - name: Install dependencies
       run: |
-        cd vatlab
+        cd demo-dashboard/vatlab
         npm ci
         
     - name: Run linter
       run: |
-        cd vatlab
+        cd demo-dashboard/vatlab
         npm run lint
         
     - name: Run tests
       run: |
-        cd vatlab
+        cd demo-dashboard/vatlab
         npm test -- --ci --coverage --maxWorkers=2 --forceExit --detectOpenHandles --no-cache
       timeout-minutes: 5
         
@@ -74,12 +74,12 @@ jobs:
     
     - name: Install dependencies
       run: |
-        cd vatlab
+        cd demo-dashboard/vatlab
         npm ci
         
     - name: Build application
       run: |
-        cd vatlab
+        cd demo-dashboard/vatlab
         npm run build
         npm run export
       env:
@@ -91,7 +91,7 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: ./vatlab/out
+        path: ./demo-dashboard/vatlab/out
         
     - name: Deploy to GitHub Pages
       id: deployment
