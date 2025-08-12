@@ -14,21 +14,19 @@ import warnings
 warnings.filterwarnings('ignore')
 
 def load_data():
-    """Load ONS and HMRC data files.
-    
-    ONS data provides the realistic structure of firms across sectors and sizes.
-    HMRC data provides validation targets and missing negative/zero firms.
-    """
+    """Load ONS and HMRC data files."""
     print("=" * 60)
     print("LOADING DATA")
     print("=" * 60)
     
     project_root = Path(__file__).parent.parent
     ons_path = project_root / 'data' / 'ONS_UK_business_data' / 'firm_turnover.csv'
+    ons_employment_path = project_root / 'data' / 'ONS_UK_business_data' / 'firm_employment.csv'
     hmrc_turnover_path = project_root / 'data' / 'HMRC_VAT_annual_statistics' / 'vat_population_by_turnover_band.csv'
     hmrc_sector_path = project_root / 'data' / 'HMRC_VAT_annual_statistics' / 'vat_population_by_sector.csv'
     
     ons_df = pd.read_csv(ons_path)
+    ons_employment_df = pd.read_csv(ons_employment_path)
     hmrc_turnover_df = pd.read_csv(hmrc_turnover_path)
     hmrc_sector_df = pd.read_csv(hmrc_sector_path)
     
@@ -44,22 +42,16 @@ def load_data():
     print(f"ONS total firms: {ons_total:,}")
     print(f"HMRC total (for validation): {hmrc_turnover_df.iloc[-1]['Total']:,}")
     
-    return ons_df, hmrc_turnover_df, hmrc_sector_df, ons_total
+    return ons_df, ons_employment_df, hmrc_turnover_df, hmrc_sector_df, ons_total
 
 def generate_turnover_in_band(band_name, count, min_val, max_val, midpoint):
-    """Generate realistic turnover values within a band.
-    
-    Uses different statistical distributions to match real-world patterns:
-    - Large firms (5000+): Log-normal distribution (some very large outliers)
-    - Medium firms (500-4999): Log-normal with less variation
-    - Small firms: Beta distribution (most firms cluster at lower end)
-    """
+    """Generate realistic turnover values within a band."""
     if count == 0:
         return np.array([])
     
     np.random.seed(42)
     
-    if band_name == '5000+':
+    if band_name == '5s+':
         # Large firms: Log-normal distribution
         log_mean = np.log(midpoint)
         log_std = 0.8
@@ -79,16 +71,153 @@ def generate_turnover_in_band(band_name, count, min_val, max_val, midpoint):
     
     return values
 
-def generate_synthetic_firms_calibrated(ons_df, ons_total, hmrc_turnover_df, hmrc_sector_df):
-    """Generate synthetic firms using ONS structure calibrated to HMRC targets.
+def generate_employment_in_band(band_name, count):
+    """Generate realistic employment values within an employment band.
     
-    Two-stage approach:
-    1. Generate realistic firms from ONS data (preserves economic structure)
-    2. Calibrate to HMRC targets (ensures statistical accuracy)
-    
-    This balances authenticity with accuracy - we get realistic firm distributions
-    while matching official government statistics.
+    Uses different distributions based on employment band size:
+    - Small bands (0-4): Most firms have 1-3 employees
+    - Medium bands: Uniform distribution within band
+    - Large bands (250+): Log-normal distribution for realistic spread
     """
+    if count == 0:
+        return np.array([])
+    
+    np.random.seed(42)
+    
+    # Map band names to ranges
+    if band_name == '0-4':
+        # Most small firms have 1-3 employees
+        values = np.random.choice([1, 2, 3, 4], size=count, p=[0.4, 0.3, 0.2, 0.1])
+    elif band_name == '5-9':
+        values = np.random.uniform(5, 9, count)
+    elif band_name == '10-19':
+        values = np.random.uniform(10, 19, count)
+    elif band_name == '20-49':
+        values = np.random.uniform(20, 49, count)
+    elif band_name == '50-99':
+        values = np.random.uniform(50, 99, count)
+    elif band_name == '100-249':
+        values = np.random.uniform(100, 249, count)
+    elif band_name == '250+':
+        # Large firms: log-normal distribution
+        log_mean = np.log(400)  # Mean around 400 employees
+        log_std = 0.8
+        values = np.random.lognormal(log_mean, log_std, count)
+        values = np.clip(values, 250, 2000)  # Cap at reasonable max
+    else:
+        values = np.array([1] * count)  # Default to 1 employee
+    
+    return np.round(values).astype(int)
+
+def assign_employment_to_firms(firms_data, ons_employment_df):
+    """Assign employment to firms using precise ONS employment band matching.
+    
+    Focus on exact ONS band calibration with improved within-band distributions.
+    """
+    np.random.seed(42)
+    
+    emp_bands = ['0-4', '5-9', '10-19', '20-49', '50-99', '100-249', '250+']
+    
+    # Get exact ONS employment band counts
+    total_ons_counts = {}
+    for band in emp_bands:
+        if band in ons_employment_df.columns:
+            sector_rows = ons_employment_df[~ons_employment_df['Description'].str.contains('Total', na=False)]
+            total_ons_counts[band] = int(sector_rows[band].fillna(0).sum())
+        else:
+            total_ons_counts[band] = 0
+    
+    total_ons_firms = sum(total_ons_counts.values())
+    target_firms = len(firms_data)
+    
+    if total_ons_firms == 0:
+        for firm in firms_data:
+            firm['employment'] = 1
+        return
+    
+    # Calculate exact target counts for each band
+    band_targets = {}
+    allocated_total = 0
+    
+    for band in emp_bands:
+        exact_target = int(round(target_firms * total_ons_counts[band] / total_ons_firms))
+        band_targets[band] = exact_target
+        allocated_total += exact_target
+    
+    # Adjust for rounding differences
+    difference = target_firms - allocated_total
+    if difference != 0:
+        # Add/remove from largest band
+        largest_band = max(band_targets.keys(), key=lambda x: band_targets[x])
+        band_targets[largest_band] += difference
+    
+    # Generate exact employment assignments for each band
+    employment_assignments = []
+    
+    for band in emp_bands:
+        target_count = band_targets[band]
+        if target_count > 0:
+            emp_values = generate_employment_in_band_improved(band, target_count)
+            employment_assignments.extend(emp_values)
+    
+    # Shuffle to randomize assignment across firms
+    np.random.shuffle(employment_assignments)
+    
+    # Assign to firms
+    for i, firm in enumerate(firms_data):
+        if i < len(employment_assignments):
+            firm['employment'] = employment_assignments[i]
+        else:
+            firm['employment'] = 1
+
+def generate_employment_in_band_improved(band_name, count):
+    """Generate improved employment values within bands using better distributions."""
+    if count == 0:
+        return np.array([])
+    
+    np.random.seed(42)
+    
+    if band_name == '0-4':
+        # Realistic small firm distribution: heavily weighted to 1-2 employees
+        values = np.random.choice([1, 2, 3, 4], size=count, p=[0.45, 0.35, 0.15, 0.05])
+    elif band_name == '5-9':
+        # Beta distribution for realistic spread
+        beta_values = np.random.beta(2, 3, count)
+        values = 5 + (beta_values * 4)
+        values = np.round(values).astype(int)
+    elif band_name == '10-19':
+        # Slightly right-skewed within band
+        beta_values = np.random.beta(2, 2.5, count)
+        values = 10 + (beta_values * 9)
+        values = np.round(values).astype(int)
+    elif band_name == '20-49':
+        # More uniform but slight right skew
+        beta_values = np.random.beta(2, 2, count)
+        values = 20 + (beta_values * 29)
+        values = np.round(values).astype(int)
+    elif band_name == '50-99':
+        # Uniform distribution
+        values = np.random.uniform(50, 99, count)
+        values = np.round(values).astype(int)
+    elif band_name == '100-249':
+        # Slight left skew for medium-large firms
+        beta_values = np.random.beta(2.5, 2, count)
+        values = 100 + (beta_values * 149)
+        values = np.round(values).astype(int)
+    elif band_name == '250+':
+        # Log-normal for large firms, more conservative
+        log_mean = np.log(380)
+        log_std = 0.7
+        values = np.random.lognormal(log_mean, log_std, count)
+        values = np.clip(values, 250, 3000)
+        values = np.round(values).astype(int)
+    else:
+        values = np.array([1] * count)
+    
+    return values
+
+def generate_synthetic_firms_calibrated(ons_df, ons_employment_df, ons_total, hmrc_turnover_df, hmrc_sector_df):
+    """Generate synthetic firms using ONS structure calibrated to HMRC targets."""
     print("\n" + "=" * 60)
     print("GENERATING ONS+HMRC CALIBRATED SYNTHETIC FIRMS")
     print("=" * 60)
@@ -111,8 +240,6 @@ def generate_synthetic_firms_calibrated(ons_df, ons_total, hmrc_turnover_df, hmr
     print(f"HMRC total: {hmrc_total:,}")
     
     # Step 1: Generate base firms using ONS structure
-    # ONS provides the "shape" of the economy - how many firms exist in each
-    # sector and size category. This gives us authentic distributions.
     print(f"\nStep 1: Generate base firms using ONS structure...")
     
     # ONS band parameters for realistic distributions
@@ -126,8 +253,17 @@ def generate_synthetic_firms_calibrated(ons_df, ons_total, hmrc_turnover_df, hmr
         '5000+': (5000, 50000, 15000)
     }
     
-    # Generate base firms from ONS data
+    # Generate base firms from ONS data with employment data
     all_base_firms = []
+    
+    # Get employment data for each SIC code
+    employment_by_sic = {}
+    for _, emp_row in ons_employment_df.iterrows():
+        emp_sic_code = emp_row['SIC Code']
+        if pd.isna(emp_sic_code) or emp_sic_code == '' or emp_sic_code == 'Total':
+            continue
+        emp_sic_formatted = str(int(emp_sic_code)).zfill(5)
+        employment_by_sic[emp_sic_formatted] = emp_row
     
     for _, row in ons_df.iterrows():
         sic_code = row['SIC Code']
@@ -137,6 +273,9 @@ def generate_synthetic_firms_calibrated(ons_df, ons_total, hmrc_turnover_df, hmr
             continue
             
         sic_formatted = str(int(sic_code)).zfill(5)
+        
+        # Get employment data for this SIC code
+        emp_data = employment_by_sic.get(sic_formatted)
         
         # Generate firms for each ONS turnover band
         for band, (min_val, max_val, midpoint) in band_params.items():
@@ -155,12 +294,14 @@ def generate_synthetic_firms_calibrated(ons_df, ons_total, hmrc_turnover_df, hmr
                             'annual_turnover_k': turnover
                         })
     
+    # Assign employment to all firms using ONS employment distribution
+    print(f"Assigning employment to {len(all_base_firms):,} firms...")
+    assign_employment_to_firms(all_base_firms, ons_employment_df)
+    
     base_df = pd.DataFrame(all_base_firms)
-    print(f"Generated {len(base_df):,} base firms from ONS structure")
+    print(f"Generated {len(base_df):,} base firms from ONS structure with employment")
     
     # Step 2: Calculate calibration factors for both HMRC datasets
-    # Compare our ONS-based generation with HMRC targets to see where
-    # we need to adjust. HMRC is the "ground truth" for validation.
     print(f"\nStep 2: Calculate calibration factors...")
     
     # Map base firms to HMRC bands
@@ -242,8 +383,6 @@ def generate_synthetic_firms_calibrated(ons_df, ons_total, hmrc_turnover_df, hmr
                 sector_factors[sic_code] = 1.0
     
     # Step 3: Apply calibration with balanced weighting
-    # Each firm gets a weight based on how much its sector and size band
-    # need adjustment to match HMRC. Higher weights = more likely to be selected.
     print(f"\nStep 3: Apply balanced calibration...")
     
     # Calculate combined calibration weights for each firm
@@ -265,8 +404,6 @@ def generate_synthetic_firms_calibrated(ons_df, ons_total, hmrc_turnover_df, hmr
     base_df['calibration_weight'] = calibration_weights
     
     # Step 4: Add missing negative/zero turnover firms first
-    # ONS doesn't capture firms with negative/zero turnover, but HMRC does.
-    # These are likely struggling businesses or firms with accounting losses.
     print(f"\nStep 4: Add negative/zero turnover firms...")
     
     negative_zero_target = hmrc_bands['Negative_or_Zero']
@@ -300,17 +437,20 @@ def generate_synthetic_firms_calibrated(ons_df, ons_total, hmrc_turnover_df, hmr
                 negative_firms_data.extend(list(zip(sic_codes, turnovers)))
         
         # Convert to list format efficiently
+        negative_firms_list = []
         for sic_code, turnover in negative_firms_data:
-            all_calibrated_firms.append({
+            negative_firms_list.append({
                 'sic_code': sic_code,
                 'annual_turnover_k': turnover
             })
         
+        # Assign employment to negative firms
+        assign_employment_to_firms(negative_firms_list, ons_employment_df)
+        all_calibrated_firms.extend(negative_firms_list)
+        
         print(f"Added {len(all_calibrated_firms):,} negative/zero turnover firms")
     
     # Step 5: Two-Stage Calibration - Stage 1: Perfect Sector Matching
-    # First priority: get sector totals exactly right. Sample from each
-    # sector separately to match HMRC sector counts precisely.
     print(f"\nStep 5: Two-Stage Calibration...")
     print("Stage 1: Sector-stratified sampling for perfect sector matching")
     
@@ -374,7 +514,8 @@ def generate_synthetic_firms_calibrated(ons_df, ons_total, hmrc_turnover_df, hmr
         for _, firm in selected_firms.iterrows():
             stage1_firms.append({
                 'sic_code': firm['sic_code'],
-                'annual_turnover_k': firm['annual_turnover_k']
+                'annual_turnover_k': firm['annual_turnover_k'],
+                'employment': firm['employment']
             })
         
         total_allocated += target_count
@@ -387,8 +528,6 @@ def generate_synthetic_firms_calibrated(ons_df, ons_total, hmrc_turnover_df, hmr
     all_calibrated_firms.extend(stage1_firms)
     
     # Step 6: Two-Stage Calibration - Stage 2: Adjust Turnover Bands
-    # Second priority: improve turnover band distribution. Move firms between
-    # bands by adjusting their turnover values to better match HMRC patterns.
     print(f"\nStep 6: Stage 2 - Adjust turnover values to improve band accuracy...")
     
     stage2_df = pd.DataFrame(all_calibrated_firms)
@@ -464,8 +603,6 @@ def generate_synthetic_firms_calibrated(ons_df, ons_total, hmrc_turnover_df, hmr
     print(f"Stage 2 complete: Adjusted {adjustment_count:,} firms")
     
     # Step 7: Final validation and quality checks
-    # Measure how well our synthetic data matches both HMRC datasets.
-    # This tells us if our approach is working effectively.
     print(f"\nStep 7: Final validation and quality checks...")
     
     # Recalculate band distribution
@@ -502,17 +639,10 @@ def generate_synthetic_firms_calibrated(ons_df, ons_total, hmrc_turnover_df, hmr
     print(f"\nFinal: Generated {len(stage2_df):,} firms with two-stage calibration")
     print(f"Target: {target_total:,}")
     
-    return stage2_df[['sic_code', 'annual_turnover_k']]
+    return stage2_df[['sic_code', 'annual_turnover_k', 'employment']]
 
 def validate_against_hmrc(synthetic_df, hmrc_turnover_df, hmrc_sector_df):
-    """Validate synthetic data against both HMRC datasets.
-    
-    Calculates accuracy scores for:
-    1. Sector distribution (do we have right number of firms per industry?)
-    2. Turnover bands (do we have right number of firms per size category?)
-    
-    High accuracy means our synthetic data closely matches official statistics.
-    """
+    """Validate synthetic data against both HMRC datasets."""
     print("\n" + "=" * 60)
     print("VALIDATING AGAINST HMRC DATA")
     print("=" * 60)
@@ -596,39 +726,92 @@ def validate_against_hmrc(synthetic_df, hmrc_turnover_df, hmrc_sector_df):
     band_accuracy = np.mean(band_accuracies)
     print(f"\nBand accuracy: {band_accuracy:.1%}")
     
+    # === EMPLOYMENT VALIDATION ===
+    print("\n3. EMPLOYMENT VALIDATION:")
+    print("-" * 30)
+    
+    def map_to_employment_band(employment):
+        """Map employment to ONS employment bands"""
+        if employment <= 4:
+            return '0-4'
+        elif employment <= 9:
+            return '5-9'
+        elif employment <= 19:
+            return '10-19'
+        elif employment <= 49:
+            return '20-49'
+        elif employment <= 99:
+            return '50-99'
+        elif employment <= 249:
+            return '100-249'
+        else:
+            return '250+'
+    
+    # Load ONS employment data for comparison
+    project_root = Path(__file__).parent.parent
+    ons_employment_path = project_root / 'data' / 'ONS_UK_business_data' / 'firm_employment.csv'
+    ons_employment_df = pd.read_csv(ons_employment_path)
+    
+    # Get ONS employment totals by band
+    ons_emp_totals = {}
+    emp_bands = ['0-4', '5-9', '10-19', '20-49', '50-99', '100-249', '250+']
+    
+    for band in emp_bands:
+        if band in ons_employment_df.columns:
+            # Sum across all sectors (excluding total row)
+            sector_rows = ons_employment_df[~ons_employment_df['Description'].str.contains('Total', na=False)]
+            ons_emp_totals[band] = sector_rows[band].fillna(0).sum()
+        else:
+            ons_emp_totals[band] = 0
+    
+    # Get synthetic employment distribution
+    synthetic_df['employment_band'] = synthetic_df['employment'].apply(map_to_employment_band)
+    synthetic_emp_counts = synthetic_df['employment_band'].value_counts()
+    
+    print("Employment band comparison:")
+    emp_accuracies = []
+    for band in emp_bands:
+        ons_count = ons_emp_totals.get(band, 0)
+        synthetic_count = synthetic_emp_counts.get(band, 0)
+        
+        if ons_count > 0:
+            accuracy = 1 - abs(synthetic_count - ons_count) / ons_count
+        else:
+            accuracy = 1.0 if synthetic_count == 0 else 0.0
+        
+        emp_accuracies.append(accuracy)
+        print(f"  {band:>8}: {synthetic_count:>8,} vs {ons_count:>8,} ({accuracy:>6.1%})")
+    
+    emp_accuracy = np.mean(emp_accuracies)
+    print(f"\nEmployment accuracy: {emp_accuracy:.1%}")
+    
     # === OVERALL VALIDATION ===
-    overall_accuracy = (sector_accuracy + band_accuracy) / 2
+    overall_accuracy = (sector_accuracy + band_accuracy + emp_accuracy) / 3
     
     print(f"\n" + "=" * 60)
     print("VALIDATION RESULTS")
     print("=" * 60)
-    print(f"Sector accuracy:  {sector_accuracy:.1%}")
-    print(f"Band accuracy:    {band_accuracy:.1%}")
-    print(f"Overall accuracy: {overall_accuracy:.1%}")
+    print(f"Sector accuracy:     {sector_accuracy:.1%}")
+    print(f"Turnover accuracy:   {band_accuracy:.1%}")
+    print(f"Employment accuracy: {emp_accuracy:.1%}")
+    print(f"Overall accuracy:    {overall_accuracy:.1%}")
     
-    return overall_accuracy, sector_accuracy, band_accuracy
+    return overall_accuracy, sector_accuracy, band_accuracy, emp_accuracy
 
 def main():
-    """Main function.
-    
-    Orchestrates the entire process:
-    1. Load ONS and HMRC data
-    2. Generate synthetic firms with calibration
-    3. Validate results against HMRC targets
-    4. Save final dataset for policy modeling
-    """
+    """Main function."""
     print("SYNTHETIC FIRM DATA GENERATION")
     print("Using ONS firm_turnover.csv as base")
     print("Validating against HMRC datasets")
     
     # Load data
-    ons_df, hmrc_turnover_df, hmrc_sector_df, ons_total = load_data()
+    ons_df, ons_employment_df, hmrc_turnover_df, hmrc_sector_df, ons_total = load_data()
     
     # Generate calibrated synthetic firms
-    synthetic_df = generate_synthetic_firms_calibrated(ons_df, ons_total, hmrc_turnover_df, hmrc_sector_df)
+    synthetic_df = generate_synthetic_firms_calibrated(ons_df, ons_employment_df, ons_total, hmrc_turnover_df, hmrc_sector_df)
     
     # Validate against HMRC
-    overall_acc, sector_acc, band_acc = validate_against_hmrc(
+    overall_acc, sector_acc, band_acc, emp_acc = validate_against_hmrc(
         synthetic_df, hmrc_turnover_df, hmrc_sector_df
     )
     
