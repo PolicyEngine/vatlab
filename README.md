@@ -28,8 +28,8 @@ Our impact analysis will calculate both static and behavioural effects for each 
 
 ## How ONS and HMRC Data Are Used
 
-**ONS Data:** Provides realistic economic structure - uses all 88 SIC sectors with exact firm counts and turnover distributions to generate 2.7M base firms with authentic size patterns.
+**ONS Data:** Provides realistic economic structure - uses all SIC sectors with exact firm counts and turnover distributions to generate base firms with authentic size patterns and employment relationships.
 
-**HMRC Data:** Provides calibration targets - sector totals, turnover band targets, and overall count (2.2M firms) for validation and adds 216k negative/zero turnover firms missing from ONS.
+**HMRC Data:** Provides calibration targets - sector totals for VAT-registered firms, turnover band targets across all bands, and adds firms with negative/zero turnover missing from ONS surveys.
 
-**Integration:** Two-stage process - ONS generates realistic structure, then weighted sampling matches HMRC targets while preserving authentic distributions. Results: 93.8% sector accuracy + 92.6% band accuracy = 93.2% overall.
+**Integration:** Multi-objective optimization process - ONS generates realistic firm structure, then mathematical optimization finds weights that simultaneously match HMRC targets while preserving authentic distributions and relationships.

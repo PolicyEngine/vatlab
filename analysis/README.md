@@ -4,7 +4,7 @@ This document explains the methodology for generating synthetic UK business data
 
 ## Overview
 
-We create individual firm records that preserve the detailed structure from ONS data while exactly matching the total counts from HMRC data. This solves a critical data science challenge: ONS provides rich sector × size detail but overestimates totals, while HMRC provides accurate totals but less structural detail.
+We create individual firm records that preserve the detailed structure from ONS data while exactly matching the target counts from HMRC data. This solves a critical data science challenge: ONS provides rich sector × size detail but overestimates totals, while HMRC provides accurate totals but less structural detail.
 
 ## The Core Challenge: Misaligned Band Definitions
 
@@ -14,9 +14,9 @@ We create individual firm records that preserve the detailed structure from ONS 
 **HMRC Turnover Bands** (from VAT registration data):
 - `Negative_or_Zero`, `£1_to_Threshold`, `£Threshold_to_£150k`, `£150k_to_£300k`, `£300k_to_£500k`, `£500k_to_£1m`, `£1m_to_£10m`, `Greater_than_£10m`
 
-These bands don't align, making direct comparison impossible. Our methodology solves this through individual firm generation and re-mapping.
+These bands don't align, making direct comparison impossible. Our methodology solves this through individual firm generation and multi-objective optimization.
 
-## Methodology: 5-Step Calibration Process
+## Methodology: Multi-Objective Optimization Approach
 
 ### Step 1: Generate Individual Firms from ONS Structure
 
@@ -33,189 +33,124 @@ ONS Band "100-249k" → Individual Firms:
 - ... (9,997 more firms)
 ```
 
-**Why this works**: Once we have individual turnover values, we can map them to any band system.
+**Turnover Generation**: Each firm gets a realistic turnover value with noise smoothing across the full band range to create natural distribution patterns.
 
-### Step 2: Map Individual Firms to HMRC Bands
+### Step 2: Create Comprehensive Target Matrix
 
-Each firm gets mapped to HMRC bands using precise turnover thresholds:
+We build a mathematical optimization problem with multiple target types:
 
+#### A. Turnover Band Targets (HMRC)
 ```python
+# Map each individual firm to HMRC bands
 def map_to_hmrc_band(turnover_k):
-    if turnover_k <= 90:        # VAT threshold ~£90k
-        return '£1_to_Threshold'
-    elif turnover_k <= 150:
-        return '£Threshold_to_£150k'  
-    elif turnover_k <= 300:
-        return '£150k_to_£300k'
+    if turnover_k <= 0:         return 'Negative_or_Zero'
+    elif turnover_k <= 90:      return '£1_to_Threshold'
+    elif turnover_k <= 150:     return '£Threshold_to_£150k'
+    elif turnover_k <= 300:     return '£150k_to_£300k'
     # ... etc
+
+# Target: Match HMRC firm counts in each band
 ```
 
-**Example mapping**:
-- Firm A (£120k) → `£Threshold_to_£150k` 
-- Firm B (£180k) → `£150k_to_£300k`
-- Firm C (£230k) → `£150k_to_£300k`
-
-**Result**: We can now count how many ONS-generated firms fall into each HMRC band.
-
-### Step 3: Calculate Calibration Factors
-
-Compare ONS-derived counts with HMRC targets for each dimension:
-
-#### A. Turnover Band Calibration
+#### B. Sector Targets (HMRC VAT-registered firms)
 ```python
-# Example (realistic numbers):
-# HMRC target for '£150k_to_£300k': 180,000 firms
-# ONS-generated in '£150k_to_£300k': 220,000 firms
-# band_factor = 180,000 / 220,000 = 0.82
-
-# This means firms in this band are OVER-represented in ONS data
-# They should have 82% selection probability
+# Target: Match HMRC sector distribution for VAT-registered firms
+# e.g., HMRC target for Manufacturing: 85,000 VAT-registered firms
 ```
 
-#### B. Sector Calibration  
+#### C. Employment Distribution (ONS)
 ```python
-# Example:
-# HMRC target for Retail (SIC 47110): 85,000 firms
-# ONS-generated Retail firms: 100,000 firms  
-# sector_factor = 85,000 / 100,000 = 0.85
-
-# Retail firms are OVER-represented in ONS data
-# They should have 85% selection probability
+# Target: Preserve ONS employment band distribution
+# Employment bands: 0-4, 5-9, 10-19, 20-49, 50-99, 100-249, 250+
 ```
 
-#### C. Combined Weights
-```python
-# For each individual firm:
-combined_weight = (band_factor + sector_factor) / 2
+### Step 3: Multi-Objective Weight Optimization
 
-# Example firm: Retail business with £200k turnover
-# band_factor = 0.82 (from '£150k_to_£300k' band - over-represented)
-# sector_factor = 0.85 (from retail sector - over-represented)
-# combined_weight = (0.82 + 0.85) / 2 = 0.835
-
-# This firm has 83.5% normal selection probability (less likely to be chosen)
-```
-
-### Step 4: Sector-Stratified Weighted Resampling
-
-The key innovation: we don't randomly sample firms. Instead, we use calibration weights as selection probabilities within each sector:
+Using PyTorch optimization to find weights that satisfy all targets simultaneously:
 
 ```python
-# For each sector separately:
-for sector in sectors:
-    # Get HMRC target count for this sector
-    target_count = hmrc_sector_targets[sector]  # e.g., 85,000 retail firms
-    
-    # Get all ONS firms in this sector  
-    sector_firms = ons_firms[ons_firms.sector == sector]  # e.g., 100,000 retail firms
-    
-    # Get their calibration weights
-    weights = sector_firms['calibration_weight']  # e.g., [0.83, 0.85, 0.81, ...]
-    
-    # Convert to probabilities (normalize to sum to 1)
-    probabilities = weights / weights.sum()
-    
-    # Sample exactly the HMRC target count using weights
-    selected_firms = np.random.choice(
-        sector_firms, 
-        size=target_count,     # Exactly 85,000 firms
-        replace=True,          # Allow same firm to be selected multiple times
-        p=probabilities        # Higher weight = higher selection chance
-    )
+# For each firm, find a weight that balances all objectives
+# Target matrix A where A[i,j] = contribution of firm j to target i
+# Solve: minimize ||A @ weights - targets||²
+
+# Use symmetric relative error loss for robust calibration
+error_1 = ((predictions / targets) - 1) ** 2
+error_2 = ((targets / predictions) - 1) ** 2
+loss = minimum(error_1, error_2)
+
+# Apply importance weights:
+# - Turnover targets: 5x importance (most critical)
+# - Sector targets: 1x importance  
+# - Employment targets: 1x importance
 ```
 
-**Why this works**:
-- **High weight firms** (under-represented): Selected multiple times
-- **Low weight firms** (over-represented): Often not selected
-- **Result**: Distribution shifts toward HMRC targets while preserving sector structure
+### Step 4: VAT Registration Assignment
 
-### Step 5: Final Band Adjustments
-
-After weighted resampling, we make targeted adjustments to fix any remaining band mismatches:
+Assign VAT registration flags based on UK rules:
 
 ```python
-# Check final band distribution vs HMRC targets
-for band in hmrc_bands:
-    current_count = count_synthetic_firms_in_band(band)
-    target_count = hmrc_targets[band]
-    
-    if abs(current_count - target_count) > threshold:
-        # Move firms between bands by adjusting their turnover values
-        adjust_firm_turnovers_to_target_band(band, needed_adjustment)
+# Mandatory VAT registration
+mandatory_vat = (turnover > 90_000)  # Above £90k threshold
+
+# Voluntary VAT registration  
+# Calculate voluntary rate from HMRC data ratio
+voluntary_rate = hmrc_target_below_threshold / synthetic_firms_below_threshold
+voluntary_vat = (turnover <= 90_000) & (random() < voluntary_rate)
+
+vat_registered = mandatory_vat | voluntary_vat
 ```
 
-## Realistic Example with Numbers
+### Step 5: Final Calibration Adjustments
 
-Let's trace through a complete example:
+```python
+# Add firms with zero/negative turnover manually to match HMRC targets
+# These firms represent businesses with losses or no turnover
 
-### Initial State (After ONS Generation)
-```
-Total ONS firms generated: 2,800,000
-Total HMRC target: 2,200,000
-
-Band: £150k_to_£300k
-- ONS-generated count: 220,000 firms
-- HMRC target: 180,000 firms  
-- Band factor: 180,000 ÷ 220,000 = 0.82
-
-Sector: Retail  
-- ONS-generated count: 320,000 firms
-- HMRC target: 250,000 firms
-- Sector factor: 250,000 ÷ 320,000 = 0.78
+if hmrc_negative_zero_target > 0:
+    # Distribute zero-turnover firms proportionally across sectors
+    add_zero_turnover_firms(hmrc_negative_zero_target, sector_proportions)
 ```
 
-### Calibration Weights
-```
-Example firm: Retail store with £200k turnover
-- Band factor: 0.82 (£150k-£300k band over-represented)
-- Sector factor: 0.78 (retail over-represented)
-- Combined weight: (0.82 + 0.78) ÷ 2 = 0.80
-- Selection probability: 80% of normal
-```
+## Key Technical Features
 
-### Resampling Result
-```
-Retail sector resampling:
-- Target: 250,000 firms (HMRC)
-- Available: 320,000 firms (ONS-generated)
-- High-weight firms: Selected 1-2 times each
-- Low-weight firms: Many not selected
-- Result: Exactly 250,000 retail firms ✓
+### Optimization Algorithm
+- **Symmetric Relative Error Loss**: Robust to different target scales
+- **L1 Regularization**: Prevents extreme weights, encourages sparse solutions  
+- **Dropout Training**: 15% dropout during optimization for robustness
+- **Early Stopping**: Prevents overfitting with patience mechanism
 
-£150k_to_£300k band result:
-- Started with: 220,000 firms
-- After weighted sampling: ~180,000 firms ✓
-```
+### Noise Generation
+- **Full Range Smoothing**: Noise applied across entire turnover bands
+- **Adaptive Noise**: Standard deviation scales with band width (minimum 25k or 20% of band width)
 
-## Key Advantages of This Approach
-
-1. **Preserves ONS Structure**: Maintains detailed sector × size relationships
-2. **Matches HMRC Totals**: Exactly hits ground truth validation targets  
-3. **Handles Band Misalignment**: Resolves incompatible band definitions elegantly
-4. **Statistically Principled**: Uses proper weighted sampling methodology
-5. **Realistic Individual Firms**: Creates believable business records for analysis
+### Employment Assignment
+- **Realistic Distributions**: Different patterns for different size bands
+  - Micro (0-4): Uniform distribution
+  - Small (5-99): Beta-like distribution  
+  - Large (250+): Log-normal distribution
 
 ## Validation Results
 
-The process typically achieves:
-- **Turnover Band Accuracy**: 95%+ match with HMRC band distribution
-- **Sector Accuracy**: 90%+ match with HMRC sector distribution  
-- **Employment Accuracy**: 95%+ match with ONS employment distribution
-- **Overall Accuracy**: 93%+ combined statistical accuracy
+The optimization typically achieves:
+- **HMRC Turnover Bands**: 95%+ accuracy match
+- **HMRC Sector Distribution**: 90%+ accuracy for VAT-registered firms
+- **ONS Employment Distribution**: 95%+ accuracy match
+- **ONS Total Population**: 99%+ accuracy match
+- **Overall Calibration**: 93%+ combined accuracy
 
 ## Files Generated
 
 - **`synthetic_firms_turnover.csv`**: Final dataset with individual firm records
-  - `sic_code`: 5-digit industry classification
+  - `sic_code`: 5-digit industry classification  
   - `annual_turnover_k`: Annual turnover in thousands of pounds
   - `employment`: Number of employees
+  - `weight`: Statistical weight for population scaling
+  - `vat_registered`: VAT registration flag (boolean)
 
 ## Usage for Policy Analysis
 
 This synthetic dataset enables:
-- **VAT Threshold Analysis**: Impact of changing registration thresholds
-- **Sector Impact Studies**: Effects of policies on different industries
-- **Size-Based Policy Modeling**: Small business vs. large enterprise analysis
-- **Economic Forecasting**: Business population projections
-
-All while maintaining statistical accuracy and protecting business confidentiality.
+- **VAT Threshold Analysis**: Impact of changing registration thresholds (90k, 150k boundaries)
+- **Sector Impact Studies**: Effects of policies on different industries  
+- **Employment-Based Analysis**: Small vs. large business policy impacts
+- **Weighted Analysis**: Use `weight` column for population-representative statistics
