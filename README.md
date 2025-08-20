@@ -1,4 +1,4 @@
-# PolicyEngine VAT Lab
+# PolicyEngine VATLab
 
 A comprehensive microsimulation framework for analyzing UK Value Added Tax (VAT) policy reforms and their economic impacts on businesses and government revenue.
 
